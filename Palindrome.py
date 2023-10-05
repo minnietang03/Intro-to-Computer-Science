@@ -19,7 +19,7 @@ word = "madam"
 # test case 2
 # word = "madman" # uncomment this to test
 
-# This is how I would've solved the problem but conditions were no allowed.
+#this is how I would've solved the problem but conditions were no allowed.
 # if word == word[::-1]:
 #     print('0')
 # else:
