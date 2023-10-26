@@ -118,3 +118,38 @@ print(find_last('aaaa', 'b'))
 #>>> 0
 
 ###########################################
+# Define a procedure, product_list,
+# that takes as input a list of numbers,
+# and returns a number that is
+# the result of multiplying all
+# those numbers together.
+
+def product_list(list_of_numbers):
+    answer = 1
+    index = 0
+    while index < len(list_of_numbers):
+        answer *= list_of_numbers[index]
+        index += 1
+    return answer
+
+#Same problem solved with for loop instead
+
+def product_list(list_of_numbers):
+    answer = 1
+    for i in list_of_numbers:
+        answer *= i
+    return answer
+
+print(product_list([9]))
+print(product_list([1,2,3,4]))
+
+
+
+#print product_list([9])
+#>>> 9
+
+#print product_list([1,2,3,4])
+#>>> 24
+
+#print product_list([])
+#>>> 1
