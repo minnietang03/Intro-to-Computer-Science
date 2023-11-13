@@ -1,47 +1,62 @@
-# The web crawler we built at the end of Unit 3 has some serious
-# flaws if we were going to use it in a real crawler. One
-# problem is if we start with a good seed page, it might
-# run for an extremely long time (even forever, since the
-# number of URLS on the web is not actually finite). This
-# question and the following one explore two different ways
-# to limit the pages that it can crawl.
+# The current index includes a url in the list of urls
+# for a keyword multiple times if the keyword appears
+# on that page more than once.
 
-# Modify the crawl_web procedure to take a second parameter,
-# max_pages, that limits the number of pages to crawl.
-# Your procedure should terminate the crawl after
-# max_pages different pages have been crawled, or when
-# there are no more pages to crawl.
+# It might be better to only include the same url
+# once in the url list for a keyword, even if it appears
+# many times.
 
-# The following definition of get_page provides an interface
-# to the website found at http://www.udacity.com/cs101x/index.html
+# Modify add_to_index so that a given url is only
+# included once in the url list for a keyword,
+# no matter how many times that keyword appears.
 
-# The function output order does not affect grading.
+def record_user_click(index, keyword, url):
+    urls = lookup(index, keyword)
+    if urls:
+        for entry in urls:
+            if entry[0] == url:
+                entry[1] = entry[1]+1
+def add_to_index(index, keyword, url):
+    for entry in index:
+        if entry[0] == keyword:
+            for urls in entry[1]:
+                if urls[0] == url:
+                    return
+                entry[1].append([url,0])
+                return
+    index.append([keyword, [[url,0]]])
 
 def get_page(url):
     try:
         if url == "http://www.udacity.com/cs101x/index.html":
-            return ('<html> <body> This is a test page for learning to crawl! '
-            '<p> It is a good idea to '
-            '<a href="http://www.udacity.com/cs101x/crawling.html">learn to '
-            'crawl</a> before you try to  '
-            '<a href="http://www.udacity.com/cs101x/walking.html">walk</a> '
-            'or  <a href="http://www.udacity.com/cs101x/flying.html">fly</a>. '
-            '</p> </body> </html> ')
+            return '''<html> <body> This is a test page for learning to crawl!
+<p> It is a good idea to is is is
+<a href="http://www.udacity.com/cs101x/crawling.html">
+learn to crawl</a> before you try to
+<a href="http://www.udacity.com/cs101x/walking.html">walk</a> or
+<a href="http://www.udacity.com/cs101x/flying.html">fly</a>.</p></body>
+</html>'''
+
         elif url == "http://www.udacity.com/cs101x/crawling.html":
-            return ('<html> <body> I have not learned to crawl yet, but I '
-            'am quite good at '
-            '<a href="http://www.udacity.com/cs101x/kicking.html">kicking</a>.'
-            '</body> </html>')
+            return '''<html> <body> I have not learned to crawl yet, but I am
+quite good at  <a href="http://www.udacity.com/cs101x/kicking.html">kicking</a>.
+</body> </html>'''
+
         elif url == "http://www.udacity.com/cs101x/walking.html":
-            return ('<html> <body> I cant get enough '
-            '<a href="http://www.udacity.com/cs101x/index.html">crawling</a>! '
-            '</body> </html>')
+            return '''<html> <body> I cant get enough
+<a href="http://www.udacity.com/cs101x/index.html">crawling</a></body></html>'''
+
         elif url == "http://www.udacity.com/cs101x/flying.html":
-            return ('<html> <body> The magic words are Squeamish Ossifrage! '
-            '</body> </html>')
+            return '''<html>
+<body>The magic words are Squeamish Ossifrage!</body></html>'''
     except:
         return ""
     return ""
+
+def union(a, b):
+    for e in b:
+        if e not in a:
+            a.append(e)
 
 def get_next_target(page):
     start_link = page.find('<a href=')
@@ -52,15 +67,10 @@ def get_next_target(page):
     url = page[start_quote + 1:end_quote]
     return url, end_quote
 
-def union(p,q):
-    for e in q:
-        if e not in p:
-            p.append(e)
-
 def get_all_links(page):
     links = []
     while True:
-        url,endpos = get_next_target(page)
+        url, endpos = get_next_target(page)
         if url:
             links.append(url)
             page = page[endpos:]
@@ -68,33 +78,32 @@ def get_all_links(page):
             break
     return links
 
-def crawl_web(seed, max_pages):
+def crawl_web(seed):
     tocrawl = [seed]
     crawled = []
-    count = 0
+    index = []
     while tocrawl:
-        if count < max_pages:
-            page = tocrawl.pop()
-            if page not in crawled:
-                union(tocrawl, get_all_links(get_page(page)))
-                crawled.append(page)
-            count+=1
-        else:
-            break
-    return crawled
+        page = tocrawl.pop()
+        if page not in crawled:
+            content = get_page(page)
+            add_page_to_index(index, page, content)
+            union(tocrawl, get_all_links(content))
+            crawled.append(page)
+    return index
 
-print(crawl_web("http://www.udacity.com/cs101x/index.html",1))
+def add_page_to_index(index, url, content):
+    words = content.split()
+    for word in words:
+        add_to_index(index, word, url)
+
+def lookup(index, keyword):
+    for entry in index:
+        if entry[0] == keyword:
+            return entry[1]
+    return None
+
+index = crawl_web("http://www.udacity.com/cs101x/index.html")
+print(lookup(index,"is"))
 #>>> ['http://www.udacity.com/cs101x/index.html']
 
-print(crawl_web("http://www.udacity.com/cs101x/index.html",3))
-#>>> ['http://www.udacity.com/cs101x/index.html',
-#>>> 'http://www.udacity.com/cs101x/flying.html',
-#>>> 'http://www.udacity.com/cs101x/walking.html']
 
-print(crawl_web("http://www.udacity.com/cs101x/index.html",500))
-#>>> ['http://www.udacity.com/cs101x/index.html',
-#>>> 'http://www.udacity.com/cs101x/flying.html',
-#>>> 'http://www.udacity.com/cs101x/walking.html',
-#>>> 'http://www.udacity.com/cs101x/crawling.html',
-#>>> 'http://www.udacity.com/cs101x/kicking.html']
-##############################################
